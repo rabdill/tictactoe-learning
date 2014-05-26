@@ -53,7 +53,7 @@ include 'db_connect.php';
 		if($info['square0'] !== '0' and $info['square0'] == $info['square1'] and $info['square0'] == $info['square2'] and $info['square0'] == $info['square3']) return $info['square0'];
 		elseif($info['square4'] !== '0' and $info['square4'] == $info['square5'] and $info['square4'] == $info['square6'] and $info['square4'] == $info['square7']) return $info['square4'];  
 		elseif($info['square8'] !== '0' and $info['square8'] == $info['square9'] and $info['square8'] == $info['square10'] and $info['square8'] == $info['square11']) return $info['square8'];
-		elseif($info['square12'] !== '0' and $info['square12'] == $info['square13'] and $info['square12'] == $info['square14'] and $info['square12'] == $info['square15']) return $info['square8'];
+		elseif($info['square12'] !== '0' and $info['square12'] == $info['square13'] and $info['square12'] == $info['square14'] and $info['square12'] == $info['square15']) return $info['square12'];
 		
 		//	check the verticals:
 		elseif($info['square0'] !== '0' and $info['square0'] == $info['square4'] and $info['square0'] == $info['square8'] and $info['square0'] == $info['square12']) return $info['square0'];

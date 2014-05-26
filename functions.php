@@ -110,7 +110,8 @@ include 'db_connect.php';
 					if(($squareNumber + 1) % 3 == 0) echo "</tr>";	//if it's about to be a new row
 				}
 				echo "</table>";
-				$certainty = abs(round(($moveScore * 100) / $totalScores, 1));	
+				echo "<h1>" . (($moveScore + $minScore) * 100) . " / " . $totalScores . "</h1>";
+				$certainty = abs((($moveScore + $minScore)) * 100 / $totalScores, 1));	
 					//	we have to use the absolute value for cases where the computer selects a 
 					//	square that has a negative score.
 				

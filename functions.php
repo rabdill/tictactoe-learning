@@ -72,7 +72,7 @@ include 'db_connect.php';
 			$query1 = "UPDATE tblSquares SET " . $computerMove . " = 2 WHERE gameID = '" . $_POST['gameID'] . "'";
 			if($debugger==true) $debugString .= "<br>" . $query1;
 			$data1 = mysql_query($query1);
-				if($data1 == false) { echo "<strong><font color=red>Failed to insert move";
+				if($data1 == false) { echo "<strong><font color=red>Failed to insert computer move";
 											die(mysql_error());
 											echo "</strong></font><br><br>";		}		
 
@@ -107,11 +107,18 @@ include 'db_connect.php';
 		}
 	}
 	
+	
+	
+	
+	
+	
 	function process_move()	{
 		$query = "UPDATE tblSquares SET " . $_POST['move'] . " = 1 WHERE gameID = '" . $_POST['gameID'] . "'";
 		$data = mysql_query($query);
-			if($data == false) { echo "<strong><font color=red>Failed to insert move";
+			if($data == false) { echo "<strong><font color=red>Failed to insert move<br>";
+										echo $query . " ";
 										die(mysql_error());
+										
 										echo "</strong></font><br><br>";		}
 	}
 	

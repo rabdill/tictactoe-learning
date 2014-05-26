@@ -1,17 +1,18 @@
 <?php	
 		$debugger = true;
 		$debugString = "" ;
+
 include 'functions.php';
 connect_db();	
 
 			//	if there's a move submitted:
 			if(isset($_POST['move']))	{
 				if($_POST['move'] == 'new') $gameID = start_new_game();
-				
-				elseif($_POST['move'] !== 'computer')	{
-					process_move();
+				else {
 					$gameID = $_POST['gameID'];
+					if($_POST['move'] !== 'computer') process_move();	//	process the player move if there is one
 				
+					
 					//		Get the computer move:
 					$query = "SELECT * FROM tblSquares WHERE gameID =" . $gameID;
 					$data = mysql_query($query);
@@ -56,7 +57,10 @@ connect_db();
 			<form action="nine.php" method="post">
 			<input type="hidden" name='gameID' value="<?php echo $gameID; ?>">
 			<button name='move' type='submit' value='new'>New game</button>
-			<button name='move' type='submit' value='computer'>Get computer move</button><br><br><br>
+			<?php if((isset($_POST['move']) == false) or ($_POST['move'] == 'new'))
+				echo "<button name='move' type='submit' value='computer'>Let computer go first</button>";
+				?>
+			<br><br><br>
 			
 			
 			<table border = "1">

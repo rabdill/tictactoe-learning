@@ -50,7 +50,7 @@ include 'db_connect.php';
 				$ties = (int) $info1['COUNT(gameID)'];
 				if($debugger==true) $debugString .= "<br>ties = " . $ties;
 				
-				$score = (3* $owins) + $ties - (2 * $xwins);
+				$score = (2* $owins) + $ties - (4 * $xwins);
 				if($debugger==true) $debugString .= "<br>score = " . $score;
 				
 				$query2 = "INSERT INTO tblTempOptions (squareNum, score) VALUES ('" . $squareTest . "', " . $score . ")";
@@ -69,6 +69,7 @@ include 'db_connect.php';
 			$info1 = mysql_fetch_array($data1);
 			
 			$computerMove = $info1['squareNum'];
+			$moveScore = (int) $info1['score'];		//	for calculating the certainty later
 			$query1 = "UPDATE tblSquares SET " . $computerMove . " = 2 WHERE gameID = '" . $_POST['gameID'] . "'";
 			if($debugger==true) $debugString .= "<br>" . $query1;
 			$data1 = mysql_query($query1);
@@ -79,6 +80,13 @@ include 'db_connect.php';
 						
 
 			if($debugger == true)	{	
+				$totalScores = 0;
+				//	find the minimum score:
+				$query1 = "SELECT MIN(score) FROM tblTempOptions";	//	sort results by square number
+				$data1 = mysql_query($query1);
+				$info1 = mysql_fetch_array($data1);
+				$minScore = $info1['MIN(score)'];
+				
 				//	print all the scores into a grid:
 				$query1 = "SELECT squareNum, score FROM tblTempOptions ORDER BY squareNum ASC";	//	sort results by square number
 				$data1 = mysql_query($query1);
@@ -90,12 +98,22 @@ include 'db_connect.php';
 					$squareTest = "square" . $squareNumber;
 					if($info1['squareNum'] == $squareTest) {
 						echo $info1['score'];
+						
+						$totalScores += $info1['score'] - $minScore;		
+							//	we add the minimum score to each one so we can add the scores together
+							//	and have each number affect the certainty: if one square's score is 10
+							//	and another's is -12, the certainty would otherwise pop out as -500%
+							
 						$info1 = mysql_fetch_array($data1);		// print the score and get the next one
 						}
 					echo "</td>";
 					if(($squareNumber + 1) % 3 == 0) echo "</tr>";	//if it's about to be a new row
 				}
 				echo "</table>";
+				$certainty = abs(round(($moveScore * 100) / $totalScores, 1));	
+					//	we have to use the absolute value for cases where the computer selects a 
+					//	square that has a negative score.
+				
 			}
 			
 			
@@ -103,7 +121,7 @@ include 'db_connect.php';
 			$query = "DELETE FROM tblTempOptions WHERE 1";
 			$data = mysql_query($query);
 			if($data == false) echo "DIDN'T DELETE THE OPTIONS.";	
-		
+			return $certainty;
 		}
 	}
 	
@@ -112,8 +130,8 @@ include 'db_connect.php';
 	
 	
 	
-	function process_move()	{
-		$query = "UPDATE tblSquares SET " . $_POST['move'] . " = 1 WHERE gameID = '" . $_POST['gameID'] . "'";
+	function process_move($gameID,$move)	{
+		$query = "UPDATE tblSquares SET " . $move . " = 1 WHERE gameID = '" . $gameID . "'";
 		$data = mysql_query($query);
 			if($data == false) { echo "<strong><font color=red>Failed to insert move<br>";
 										echo $query . " ";

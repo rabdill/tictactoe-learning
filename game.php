@@ -1,4 +1,7 @@
 <?php	
+		if(isset($_POST['grid'])) $grid = (int) $_POST['grid'];
+		else $grid = 3;
+		$certainty = 0;
 		$debugger = true;
 		$debugString = "" ;
 
@@ -10,7 +13,8 @@ connect_db();
 				if($_POST['move'] == 'new') $gameID = start_new_game();
 				else {
 					$gameID = $_POST['gameID'];
-					if($_POST['move'] !== 'computer') process_move();	//	process the player move if there is one
+					$move = $_POST['move'];
+					if($_POST['move'] !== 'computer') process_move($gameID,$move);	//	process the player move if there is one
 				
 					
 					//		Get the computer move:
@@ -24,7 +28,7 @@ connect_db();
 							$gameOver = check_for_gameover($info);
 							//	If the game isn't over, make a computer move:
 							if($gameOver == 0) {
-								computer_move($_POST['gameID'], $debugger, $debugString);
+								$certainty = computer_move($_POST['gameID'], $debugger, $debugString);
 								$gameID = $_POST['gameID'];
 							}		
 				}
@@ -54,7 +58,7 @@ connect_db();
 	
 	<body>
 	<h1>Game Number <?php echo $gameID; ?></h1>
-			<form action="nine.php" method="post">
+			<form action="game.php" method="post">
 			<input type="hidden" name='gameID' value="<?php echo $gameID; ?>">
 			<button name='move' type='submit' value='new'>New game</button>
 			<?php if((isset($_POST['move']) == false) or ($_POST['move'] == 'new'))
@@ -122,6 +126,7 @@ connect_db();
 			</form>
 			
 		</table>
+			<?php if($certainty !== 0) echo "<h4>Certainty: {$certainty} %</h4>"; ?>
 			<div id='computer-output'><?php echo $debugString; ?></div>
 		
 	</body>

@@ -22,8 +22,9 @@ connect_db();
 							$info = mysql_fetch_array($data);
 							$gameOver = check_for_gameover($info);
 							//	If the game isn't over, make a computer move:
-							if($gameOver == 0) {		computer_move($_POST['gameID'], $debugger, $debugString);
-										$gameID = $_POST['gameID'];
+							if($gameOver == 0) {
+								computer_move($_POST['gameID'], $debugger, $debugString);
+								$gameID = $_POST['gameID'];
 							}		
 				}
 			}	//	end block that evaluates $_POST['move']

@@ -2,7 +2,8 @@
 
 	
 include 'db_connect.php';		//	put in a separate file to keep my DB credentials from getting out. AGAIN.
-	
+
+
 function computer_move($gameID, $debugger, $debugString)	{
 	//	get the current grid
 	$query = "SELECT * FROM tblSquares WHERE gameID =" . $gameID;
@@ -13,7 +14,7 @@ function computer_move($gameID, $debugger, $debugString)	{
 	
 	$info = mysql_fetch_array($data);	//	grab the game's results (all in same row)
 	$squareNumber = 0;	
-	while($squareNumber < 9)
+	while($squareNumber < 9)	//	we just go from the first square to the last, testing blank ones
 	{
 		$squareTest = "square" . $squareNumber;	//	translate the number into the name of the field in the DB
 		if($info[$squareTest] == '0')			// if it's a blank square, test to see what happens if computer takes it. otherwise just skip the whole damn thing
@@ -73,67 +74,72 @@ function computer_move($gameID, $debugger, $debugString)	{
 	$data1 = mysql_query($query1);
 	$info1 = mysql_fetch_array($data1);
 	$computerMove = $info1['squareNum'];	//	query all the options, take the one with the highest score
-		
-		
-		
-			$moveScore = (int) $info1['score'];		//	for calculating the certainty later
-			$query1 = "UPDATE tblSquares SET " . $computerMove . " = 2 WHERE gameID = '" . $_POST['gameID'] . "'";
-			if($debugger==true) $debugString .= "<br>" . $query1;
-			$data1 = mysql_query($query1);
-				if($data1 == false) { echo "<strong><font color=red>Failed to insert computer move";
-											die(mysql_error());
-											echo "</strong></font><br><br>";		}		
+	$moveScore = (int) $info1['score'];		//	save it for calculating the certainty later
+	
+	//	Put an "O" in that square in the DB:
+	$query1 = "UPDATE tblSquares SET " . $computerMove . " = 2 WHERE gameID = '" . $_POST['gameID'] . "'";
+	if($debugger==true) $debugString .= "<br>" . $query1;
+	$data1 = mysql_query($query1);
+	if($data1 == false) { echo "<strong><font color=red>Failed to insert computer move";
+									die(mysql_error());
+									echo "</strong></font><br><br>";		}		
 
-						
-
-			if($debugger == true)	{	
-				$totalScores = 0;
-				//	find the minimum score:
-				$query1 = "SELECT MIN(score) FROM tblTempOptions";	//	sort results by square number
-				$data1 = mysql_query($query1);
-				$info1 = mysql_fetch_array($data1);
-				$minScore = $info1['MIN(score)'];
-				
-				//	print all the scores into a grid:
-				$query1 = "SELECT squareNum, score FROM tblTempOptions ORDER BY squareNum ASC";	//	sort results by square number
-				$data1 = mysql_query($query1);
-				$info1 = mysql_fetch_array($data1);	//	load the first score
-				echo "<table border='1' style='float:right;'>";
-				for($squareNumber = 0; $squareNumber < 9; $squareNumber++)	{
-					if($squareNumber % 3 == 0) echo "<tr>";	//if it's a new row
-					echo "<td>";
-					$squareTest = "square" . $squareNumber;
-					if($info1['squareNum'] == $squareTest) {
-						echo $info1['score'];
-						$totalScores += $info1['score'] + abs($minScore);
-						echo "[{$totalScores}]";
-						
-							//	we add the minimum score to each one so we can add the scores together
-							//	and have each number affect the certainty: if one square's score is 10
-							//	and another's is -12, the certainty would otherwise pop out as -500%
-							
-						$info1 = mysql_fetch_array($data1);		// print the score and get the next one
-						}
-					echo "</td>";
-					if(($squareNumber + 1) % 3 == 0) echo "</tr>";	//if it's about to be a new row
-				}
-				echo "</table>";
-				$certainty = round((($moveScore + abs($minScore)) * 100) / $totalScores , 1);
-					//	we have to use the absolute value for cases where the computer selects a 
-					//	square that has a negative score.
-				
-			}
-			
-			
-			//		Now delete all the options we piled up:
-			$query = "DELETE FROM tblTempOptions WHERE 1";
-			$data = mysql_query($query);
-			if($data == false) echo "DIDN'T DELETE THE OPTIONS.";	
-			return $certainty;
+	//		Printing the debugging grid full of scores:					
+	if($debugger) $certainty = print_debug_grid($moveScore);
+	else $certainty = 0;
+		
+	//		Now delete all the options we piled up:
+	$query = "DELETE FROM tblTempOptions WHERE 1";
+	$data = mysql_query($query);
+	if($data == false) echo "DIDN'T DELETE THE OPTIONS.";	
+	
+	return $certainty;
 }
 
 
-
+function print_debug_grid($moveScore)
+{
+	//	find the minimum score:
+	$query1 = "SELECT MIN(score) FROM tblTempOptions";	//	sort results by square number
+	$data1 = mysql_query($query1);
+	$info1 = mysql_fetch_array($data1);
+	$minScore = $info1['MIN(score)'];	
+	$totalScores = 0;
+	
+	//	print all the scores into a grid:
+	$query1 = "SELECT squareNum, score FROM tblTempOptions ORDER BY squareNum ASC";	//	sort results by square number
+	$data1 = mysql_query($query1);
+	$info1 = mysql_fetch_array($data1);	//	load the first score
+	echo "<table border='1' style='float:right;'>";
+		//	look for the scores of all 9 squares
+		for($squareNumber = 0; $squareNumber < 9; $squareNumber++)
+		{
+			if($squareNumber % 3 == 0) echo "<tr>";	//if it's a new row (of 3)
+			echo "<td>";
+			$squareTest = "square" . $squareNumber;
+			
+			//	If the next value we find in the DB is for the square we're testing, fill it in:
+			if($info1['squareNum'] == $squareTest)	
+			{
+				echo $info1['score'];
+				$totalScores += $info1['score'] + abs($minScore);
+				echo "[{$totalScores}]";
+					//	we add the minimum score to each one so we can add the scores together
+					//	and have each number affect the certainty: if one square's score is 10
+					//	and another's is -12, the certainty would otherwise pop out as -500%
+				$info1 = mysql_fetch_array($data1);		// get the next square from the DB
+						}
+				echo "</td>";
+				if(($squareNumber + 1) % 3 == 0) echo "</tr>";	//	if it's about to be a new row, close the old one
+		}
+	echo "</table>";
+	$certainty = round((($moveScore + abs($minScore)) * 100) / $totalScores , 1);
+		//	we have to use the absolute value for cases where the computer selects a 
+		//	square that has a negative score.	
+	return $certainty;
+}	
+		
+		
 
 
 

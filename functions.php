@@ -4,7 +4,8 @@
 include 'db_connect.php';		//	put in a separate file to keep my DB credentials from getting out. AGAIN.
 
 
-function computer_move($gameID, $debugger, $debugString)	{
+function computer_move($gameID, $debugger)	{
+	$debugString = "" ;
 	//	get the current grid
 	$query = "SELECT * FROM tblSquares WHERE gameID =" . $gameID;
 	$data = mysql_query($query);
@@ -55,7 +56,7 @@ function computer_move($gameID, $debugger, $debugString)	{
 			if($debugger==true) $debugString .= "<br>ties = " . $ties;
 			
 			//	Generate the score based on the results:
-			$score = (3 * $owins) + $ties - (4 * $xwins);			
+			$score = (2 * $owins) + $ties - (3 * $xwins);			
 			if($debugger==true) $debugString .= "<br>score = " . $score;
 			
 			//	write the score into the temp table:
@@ -93,7 +94,8 @@ function computer_move($gameID, $debugger, $debugString)	{
 	$data = mysql_query($query);
 	if($data == false) echo "DIDN'T DELETE THE OPTIONS.";	
 	
-	return $certainty;
+	echo "<h3 style='float:right;'>Certainty: {$certainty} %";
+	return $debugString;
 }
 
 
@@ -138,8 +140,7 @@ function print_debug_grid($moveScore)
 		//	square that has a negative score.	
 	return $certainty;
 }	
-		
-		
+
 
 
 

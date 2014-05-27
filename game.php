@@ -1,9 +1,8 @@
 <?php	
 		if(isset($_POST['grid'])) $grid = (int) $_POST['grid'];
 		else $grid = 3;
-		$certainty = 0;
 		$debugger = true;
-		$debugString = "" ;
+		$debugString = "";
 
 include 'functions.php';
 connect_db();	
@@ -28,7 +27,7 @@ connect_db();
 							$gameOver = check_for_gameover($info);
 							//	If the game isn't over, make a computer move:
 							if($gameOver == 0) {
-								$certainty = computer_move($_POST['gameID'], $debugger, $debugString);
+								$debugString = computer_move($_POST['gameID'], $debugger);
 								$gameID = $_POST['gameID'];
 							}		
 				}
@@ -126,7 +125,6 @@ connect_db();
 			</form>
 			
 		</table>
-			<?php if($certainty !== 0) echo "<h4>Certainty: {$certainty} %</h4>"; ?>
 			<div id='computer-output'><?php echo $debugString; ?></div>
 		
 	</body>
